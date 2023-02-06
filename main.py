@@ -1,13 +1,13 @@
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QRect
-from PyQt5.QtGui import QIcon, QBitmap, QFont
+from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QRect, QSize
+from PyQt5.QtGui import QCursor
 import calendar
-import sched
-import time
 import sys
 import json
 from datetime import datetime
 from pymysql import cursors, connect
+from dotenv import dotenv_values
+import qtawesome as qta
 
 JAN = 1
 FEB = 2
@@ -23,6 +23,7 @@ NOV = 11
 DEC = 12
 
 cal = calendar.Calendar()
+config = dotenv_values(".env")
 
 
 class App(QMainWindow):
@@ -74,9 +75,9 @@ class App(QMainWindow):
         self.formatMenu = self.menuBar.addMenu('Format')
         self.fontAction = QAction('Font...')
 
-        self.close_btn = QPushButton("X", self.menuBar)
-        self.max_btn = QPushButton("", self.menuBar)
-        self.min_btn = QPushButton("_", self.menuBar)
+        self.close_btn = QPushButton(self.menuBar)
+        self.max_btn = QPushButton(self.menuBar)
+        self.min_btn = QPushButton(self.menuBar)
 
         self.oldPos = self.pos()
         self.screen = app.desktop()
@@ -107,7 +108,7 @@ class App(QMainWindow):
 
         self.setStyleSheet('background-color: #cccccc')
 
-        self.menuBar.setStyleSheet('color: #333333; font-size: 16px;')
+        self.menuBar.setStyleSheet('color: #333333; font-size: 20px;')
 
         self.newProjectAction.setShortcut('Ctrl+Shift+N')
         self.fileMenu.addAction(self.newProjectAction)
@@ -141,13 +142,22 @@ class App(QMainWindow):
         self.windowControlLayout.addWidget(self.max_btn)
         self.windowControlLayout.addWidget(self.close_btn)
 
-        self.min_btn.setStyleSheet("width: 20px; height:20px; border: none;")
+        self.min_btn.setStyleSheet("width: 30px; height:20px; border: none;")
+        self.min_btn.setIcon(qta.icon('fa5s.window-minimize', color="#333333"))
+        self.min_btn.setIconSize(QSize(20, 20))
+        self.min_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.min_btn.clicked.connect(self.minButton)
 
-        self.max_btn.setStyleSheet("width: 20px; height:20px; border: none;")
+        self.max_btn.setStyleSheet("width: 30px; height:20px; border: none;")
+        self.max_btn.setIcon(qta.icon('fa5s.window-maximize', color="#333333"))
+        self.max_btn.setIconSize(QSize(20, 20))
+        self.max_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.max_btn.clicked.connect(self.maxButton)
 
-        self.close_btn.setStyleSheet("width: 20px; height:20px; border: none;")
+        self.close_btn.setStyleSheet("width: 30px; height:20px; border: none;")
+        self.close_btn.setIcon(qta.icon('fa5s.times', color="#333333"))
+        self.close_btn.setIconSize(QSize(20, 20))
+        self.close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.close_btn.clicked.connect(self.closeButton)
 
         monthSelect = QComboBox(self)
@@ -166,10 +176,10 @@ class App(QMainWindow):
 
     @staticmethod
     def connectDB():
-        return connect(host='localhost',
-                       user='root',
-                       password='',
-                       db='event_manager',
+        return connect(host=config["MYSQL_HOST"],
+                       user=config["MYSQL_USER"],
+                       password=config["MYSQL_PASS"],
+                       db=config["MYSQL_DB"],
                        charset='utf8mb4',
                        cursorclass=cursors.DictCursor)
 
@@ -548,10 +558,10 @@ class DayView(QWidget):
 
     @staticmethod
     def connectDB():
-        return connect(host='localhost',
-                       user='root',
-                       password='',
-                       db='event_manager',
+        return connect(host=config["MYSQL_HOST"],
+                       user=config["MYSQL_USER"],
+                       password=config["MYSQL_PASS"],
+                       db=config["MYSQL_DB"],
                        charset='utf8mb4',
                        cursorclass=cursors.DictCursor)
 
@@ -635,41 +645,6 @@ class Event:
         self.event     = event
         self.time_slot = time_slot
 
-'''
-s = sched.scheduler(time.time, time.sleep)
-
-
-def print_time(a='default'):
-    print("From print_time", time.time(), a)
-
-
-def print_some_times():
-    s.enter(10, 1, print_time)
-    s.enter(5, 2, print_time, argument=('positional',))
-    s.enter(5, 1, print_time, kwargs={'a': 'keyword'})
-    s.run()
-    print(time.time())
-
-
-print_some_times()
-
-
-
-
-def show_month(month, year):
-    print(calendar.weekheader(3))
-    for week in cal.monthdayscalendar(year, month):
-        week_string = ""
-        for day in week:
-            if day == 0:
-                week_string += " \t"
-            else:
-                week_string += str(day) + "\t"
-        print(week_string)
-
-
-show_month(JAN, 2021)
-'''
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
